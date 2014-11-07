@@ -1,16 +1,23 @@
 package GUI;
 
-// testing testing
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -19,6 +26,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
+
+
+import GUI.UserInterface.Shape;
 import model.Model;
 
 /**
@@ -48,8 +58,11 @@ public class UserInterface{
 		
 		aMenuPanel.add(aData);
 		
-  		rightPanel = new JPanel();
-		leftPanel = createPalette();
+		//added code robin
+		ShapeCanvas canvas = new ShapeCanvas();// create the canvas
+		
+  		rightPanel = canvas;// change this to the canvas
+		leftPanel = createPalette(canvas);
   		leftPanel.setLayout(new GridLayout(4,1));
   		aFrame.setLayout(new BorderLayout(3,3));
 		aFrame.add("Center",rightPanel);
@@ -63,47 +76,19 @@ public class UserInterface{
 	/**
 	 * @return A JPanel that consists of the palette.
 	 */
-	private static JPanel createPalette()
+	private static JPanel createPalette(ShapeCanvas canvas)
 	{
 		final JButton diamondButton = new JButton("Mission"); // buttons for adding shapes
- 		diamondButton.addActionListener(new ActionListener()
- 		{
- 			public void actionPerformed( ActionEvent pEvent)
- 			{
- 				logger.info("Diamond button pressed");
- 				// Need to implement.
- 			}
- 		});
+ 		diamondButton.addActionListener(canvas);
  		
 		final JButton startPointButton = new JButton("Start Point"); // buttons for adding shapes
- 		startPointButton.addActionListener(new ActionListener()
- 		{
- 			public void actionPerformed( ActionEvent pEvent)
- 			{
- 				logger.info("Start Point button pressed");
- 				// Need to implement.
- 			}
- 		});
+ 		startPointButton.addActionListener(canvas);
  		
 		final JButton endPointButton = new JButton("End Point"); // buttons for adding shapes
- 		endPointButton.addActionListener(new ActionListener()
- 		{
- 			public void actionPerformed( ActionEvent pEvent)
- 			{
- 				logger.info("End Point button pressed");
- 				// Need to implement.
- 			}
- 		});
+ 		endPointButton.addActionListener(canvas);
  		
 		final JButton linkButton = new JButton("Link"); // buttons for adding shapes
- 		linkButton.addActionListener(new ActionListener()
- 		{
- 			public void actionPerformed( ActionEvent pEvent)
- 			{
- 				logger.info("Link button pressed");
- 				// Need to implement.
- 			}
- 		});
+ 		linkButton.addActionListener(canvas);
  		
  		JPanel aPalettePanel = new JPanel();
  		aPalettePanel.add(diamondButton);
@@ -195,4 +180,201 @@ public class UserInterface{
 		aData.add(lExport);
 		return aData;
 	}
-}
+
+
+	static class ShapeCanvas extends JPanel implements ActionListener, MouseListener, MouseMotionListener {
+		
+		ArrayList shapes = new ArrayList(); //holds the list of shapes that are displayed on the canvas
+		Color currentColor = Color.black;
+		
+		ShapeCanvas() {
+			// Constructor: set background color to white set up listeners to
+			// respond to mouse actions
+			setBackground(Color.white);
+			addMouseListener(this);
+			addMouseMotionListener(this);
+		}
+		
+		public void paintComponent(Graphics g) {
+			// In the paint method, all the shapes in ArrayList are
+			// copied onto the canvas.
+			g.setColor(getBackground());
+			g.fillRect(0, 0, getSize().width, getSize().height);
+			int top = shapes.size();
+			for (int i = 0; i < top; i++) {
+				Shape s = (Shape) shapes.get(i);
+				s.draw(g);
+			}
+		}
+		
+		public void actionPerformed(ActionEvent evt) {
+            // Called to respond to action events.  The three shape-adding
+            // buttons have been set up to send action events to this canvas.
+            // Respond by adding the appropriate shape to the canvas.
+
+           String command = evt.getActionCommand();
+           if (command.equals("Mission"))
+        	   addShape(new RoundRectShape());  
+           else if (command.equals("Start Point"))
+              addShape(new OvalShape());
+           else if (command.equals("End Point"))
+        	   addShape(new RectShape());
+         }
+		
+		void addShape(Shape shape) {
+			// Add the shape to the canvas, and set its size/position and color.
+			// The shape is added at the top-left corner, with size 80-by-50.
+			// Then redraw the canvas to show the newly added shape.
+			shape.setColor(currentColor);
+			shape.reshape(3, 3, 50, 50);
+			shapes.add(shape);
+			repaint();
+		}
+
+		@Override
+		public void mouseDragged(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseMoved(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseExited(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mousePressed(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		
+	}// end shapecanvas
+	
+	   static abstract class Shape {
+
+	         // A class representing shapes that can be displayed on a ShapeCanvas.
+	         // The subclasses of this class represent particular types of shapes.
+	         // When a shape is first constructed, it has height and width zero
+	         // and a default color of white.
+
+	      int left, top;      // Position of top left corner of rectangle that bounds this shape.
+	      int width, height;  // Size of the bounding rectangle.
+	      Color color = Color.white;  // Color of this shape.
+
+	      void reshape(int left, int top, int width, int height) {
+	            // Set the position and size of this shape.
+	         this.left = left;
+	         this.top = top;
+	         this.width = width;
+	         this.height = height;
+	      }
+
+	      void moveBy(int dx, int dy) {
+	             // Move the shape by dx pixels horizontally and dy pixels vertically
+	             // (by changing the position of the top-left corner of the shape).
+	         left += dx;
+	         top += dy;
+	      }
+
+	      void setColor(Color color) {
+	             // Set the color of this shape
+	         this.color = color;
+	      }
+
+	      boolean containsPoint(int x, int y) {
+	            // Check whether the shape contains the point (x,y).
+	            // By default, this just checks whether (x,y) is inside the
+	            // rectangle that bounds the shape.  This method should be
+	            // overridden by a subclass if the default behavior is not
+	            // appropriate for the subclass.
+	         if (x >= left && x < left+width && y >= top && y < top+height)
+	            return true;
+	         else
+	            return false;
+	      }
+
+	      abstract void draw(Graphics g);  
+	            // Draw the shape in the graphics context g.
+	            // This must be overriden in any concrete subclass.
+
+	   }  // end of class Shape
+
+
+
+	   static class RectShape extends Shape {
+	         // This class represents rectangle shapes.
+	      void draw(Graphics g) {
+	         g.setColor(color);
+	         g.fillRect(left,top,width,height);
+	         g.setColor(Color.black);
+	         g.drawRect(left,top,width,height);
+	      }
+	   }
+
+
+	   static class OvalShape extends Shape {
+	          // This class represents oval shapes.
+	      void draw(Graphics g) {
+	         g.setColor(color);
+	         g.fillOval(left,top,width,height);
+	         g.setColor(Color.black);
+	         g.drawOval(left,top,width,height);
+	      }
+	      boolean containsPoint(int x, int y) {
+	            // Check whether (x,y) is inside this oval, using the
+	            // mathematical equation of an ellipse.
+	         double rx = width/2.0;   // horizontal radius of ellipse
+	         double ry = height/2.0;  // vertical radius of ellipse 
+	         double cx = left + rx;   // x-coord of center of ellipse
+	         double cy = top + ry;    // y-coord of center of ellipse
+	         if ( (ry*(x-cx))*(ry*(x-cx)) + (rx*(y-cy))*(rx*(y-cy)) <= rx*rx*ry*ry )
+	            return true;
+	         else
+	           return false;
+	      }
+	   }
+
+
+	   static class RoundRectShape extends Shape {
+	          // This class represents rectangle shapes with rounded corners.
+	          // (Note that it uses the inherited version of the 
+	          // containsPoint(x,y) method, even though that is not perfectly
+	          // accurate when (x,y) is near one of the corners.)
+	      void draw(Graphics g) {
+	        g.setColor(color);
+	        g.fillRoundRect(left,top,width,height,width/3,height/3);
+	        g.setColor(Color.black);
+	        g.drawRoundRect(left,top,width,height,width/3,height/3);
+	        g.drawString("M", left, top);
+	      }
+	   }
+
+
+}// end interface class
+	
