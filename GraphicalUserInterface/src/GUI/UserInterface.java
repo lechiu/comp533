@@ -214,61 +214,131 @@ public class UserInterface{
 
            String command = evt.getActionCommand();
            if (command.equals("Mission"))
-        	   addShape(new RoundRectShape());  
+        	   addShape(new RoundRectShape(),50,50);  
            else if (command.equals("Start Point"))
-              addShape(new OvalShape());
+              addShape(new OvalShape(),30,30);
            else if (command.equals("End Point"))
-        	   addShape(new RectShape());
+        	   addShape(new RectShape(),10,30);
          }
 		
-		void addShape(Shape shape) {
+		void addShape(Shape shape, int width, int height) {
 			// Add the shape to the canvas, and set its size/position and color.
 			// The shape is added at the top-left corner, with size 80-by-50.
 			// Then redraw the canvas to show the newly added shape.
 			shape.setColor(currentColor);
-			shape.reshape(3, 3, 50, 50);
+			shape.reshape(10, 10, width, height);
 			shapes.add(shape);
 			repaint();
 		}
+		
+		// -------------------- This rest of this class implements dragging
+		// ----------------------
+
+		Shape shapeBeingDragged = null; // This is null unless a shape is being
+										// dragged.
+										// A non-null value is used as a signal
+										// that dragging
+										// is in progress, as well as indicating
+										// which shape
+										// is being dragged.
+
+		int prevDragX; // During dragging, these record the x and y coordinates
+						// of the
+		int prevDragY; // previous position of the mouse.
+	      
 
 		@Override
-		public void mouseDragged(MouseEvent arg0) {
+		public void mouseDragged(MouseEvent evt) {
+			// TODO Auto-generated method stub
+			// User has pressed the mouse. Find the shape that the user has
+			// clicked on, if
+			// any. If there is a shape at the position when the mouse was
+			// clicked, then
+			// start dragging it. If the user was holding down the shift key,
+			// then bring
+			// the dragged shape to the front, in front of all the other shapes.
+			int x = evt.getX(); // x-coordinate of point where mouse was clicked
+			int y = evt.getY(); // y-coordinate of point
+			for (int i = shapes.size() - 1; i >= 0; i--) { // check shapes from
+															// front to back
+				Shape s = (Shape) shapes.get(i);
+				if (s.containsPoint(x, y)) {
+					shapeBeingDragged = s;
+					prevDragX = x;
+					prevDragY = y;
+					if (evt.isShiftDown()) { // Bring the shape to the front by
+												// moving it to
+						shapes.remove(s); // the end of the list of shapes.
+						shapes.add(s);
+						repaint(); // repaint canvas to show shape in front of
+									// other shapes
+					}
+					return;
+				}
+			}//end for
+
+		}//end mouse dragged
+
+		@Override
+		public void mouseMoved(MouseEvent evt) {
+			// TODO Auto-generated method stub
+			// User has moved the mouse. Move the dragged shape by the same
+			// amount.
+			int x = evt.getX();
+			int y = evt.getY();
+			if (shapeBeingDragged != null) {
+				shapeBeingDragged.moveBy(x - prevDragX, y - prevDragY);
+				prevDragX = x;
+				prevDragY = y;
+				repaint(); // redraw canvas to show shape in new position
+			}
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent evt) {
+			// User has released the mouse. Move the dragged shape, then set
+			// shapeBeingDragged to null to indicate that dragging is over.
+			// If the shape lies completely outside the canvas, remove it
+			// from the list of shapes (since there is no way to ever move
+			// it back onscreen).
+			int x = evt.getX();
+			int y = evt.getY();
+			if (shapeBeingDragged != null) {
+				shapeBeingDragged.moveBy(x - prevDragX, y - prevDragY);
+				if (shapeBeingDragged.left >= getSize().width
+						|| shapeBeingDragged.top >= getSize().height
+						|| shapeBeingDragged.left + shapeBeingDragged.width < 0
+						|| shapeBeingDragged.top + shapeBeingDragged.height < 0) { // shape
+																					// is
+																					// off-screen
+					shapes.remove(shapeBeingDragged); // remove shape from list
+														// of shapes
+				}
+				shapeBeingDragged = null;
+				repaint();
+			}
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent evt) {
 			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
-		public void mouseMoved(MouseEvent arg0) {
+		public void mouseExited(MouseEvent evt) {
 			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
-		public void mouseClicked(MouseEvent arg0) {
+		public void mousePressed(MouseEvent evt) {
 			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
-		public void mouseEntered(MouseEvent arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void mouseExited(MouseEvent arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void mousePressed(MouseEvent arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent arg0) {
+		public void mouseReleased(MouseEvent evt) {
 			// TODO Auto-generated method stub
 			
 		}
