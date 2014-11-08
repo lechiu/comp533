@@ -4,7 +4,6 @@ package GUI;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,18 +16,15 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
-
-
-import GUI.UserInterface.Shape;
 import model.Model;
 
 /**
@@ -314,6 +310,7 @@ public class UserInterface{
 					shapes.remove(shapeBeingDragged); // remove shape from list
 														// of shapes
 				}
+				
 				shapeBeingDragged = null;
 				repaint();
 			}
@@ -334,7 +331,31 @@ public class UserInterface{
 		@Override
 		public void mousePressed(MouseEvent evt) {
 			// TODO Auto-generated method stub
+			Shape aShape = null;
+			String classname = "";
+			int x = evt.getX(); // x-coordinate of point where mouse was clicked
+			int y = evt.getY(); // y-coordinate of point
+			for (int i = shapes.size() - 1; i >= 0; i--) { 
+				Shape s = (Shape) shapes.get(i);
+				if (s.containsPoint(x, y)) {
+					aShape = s;
+					classname = aShape.getClass().getSimpleName();
+				}
+			}
 			
+			if(evt.getClickCount() == 2 && classname.equals("RoundRectShape"))
+			{
+				String description = JOptionPane.showInputDialog("Description: ");
+				if(description == null)
+				{
+					System.out.println("Pressed cancel");
+				}
+				else
+				{
+					JOptionPane.showMessageDialog(aFrame, "Description Succesfully Updated!");
+					System.out.println(description);
+				}
+	        }
 		}
 
 		@Override
