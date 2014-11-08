@@ -1,6 +1,5 @@
 package GUI;
 
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -34,6 +33,8 @@ import model.Model;
 public class UserInterface{
 	private static Logger logger = Logger.getLogger(UserInterface.class.getName());
 	private static Integer trial;
+	final static int ROWS_IN_LEFT_PANEL = 5;
+	final static int COLUMNS_IN_LEFT_PANEL = 1;
 	private static JFrame aFrame = new JFrame();
 	private static JPanel rightPanel;
 	private static JPanel leftPanel;
@@ -59,7 +60,7 @@ public class UserInterface{
 		
   		rightPanel = canvas;// change this to the canvas
 		leftPanel = createPalette(canvas);
-  		leftPanel.setLayout(new GridLayout(4,1));
+  		leftPanel.setLayout(new GridLayout(ROWS_IN_LEFT_PANEL,COLUMNS_IN_LEFT_PANEL));
   		aFrame.setLayout(new BorderLayout(3,3));
 		aFrame.add("Center",rightPanel);
 		aFrame.add("West",leftPanel);
@@ -86,11 +87,15 @@ public class UserInterface{
 		final JButton linkButton = new JButton("Link"); // buttons for adding shapes
  		linkButton.addActionListener(canvas);
  		
+		final JButton deleteButton = new JButton("Delete"); // buttons for adding shapes
+ 		deleteButton.addActionListener(canvas);
+ 		
  		JPanel aPalettePanel = new JPanel();
  		aPalettePanel.add(diamondButton);
  		aPalettePanel.add(startPointButton);
  		aPalettePanel.add(endPointButton);
  		aPalettePanel.add(linkButton);
+ 		aPalettePanel.add(deleteButton);
 		return aPalettePanel;
 	}
 	
@@ -180,8 +185,9 @@ public class UserInterface{
 
 	static class ShapeCanvas extends JPanel implements ActionListener, MouseListener, MouseMotionListener {
 		
-		ArrayList shapes = new ArrayList(); //holds the list of shapes that are displayed on the canvas
+		ArrayList<Shape> shapes = new ArrayList<Shape>(); //holds the list of shapes that are displayed on the canvas
 		Color currentColor = Color.black;
+		Shape elementClickedOn = null; // records the last element you clicked on
 		
 		ShapeCanvas() {
 			// Constructor: set background color to white set up listeners to
@@ -208,13 +214,27 @@ public class UserInterface{
             // buttons have been set up to send action events to this canvas.
             // Respond by adding the appropriate shape to the canvas.
 
-           String command = evt.getActionCommand();
-           if (command.equals("Mission"))
-        	   addShape(new RoundRectShape(),50,50);  
-           else if (command.equals("Start Point"))
-              addShape(new OvalShape(),30,30);
-           else if (command.equals("End Point"))
-        	   addShape(new RectShape(),10,30);
+	           String command = evt.getActionCommand();
+	           if (command.equals("Mission"))
+	           {
+	        	   addShape(new RoundRectShape(),50,50);
+	           }
+	           else if (command.equals("Start Point"))
+	           {
+	              addShape(new OvalShape(),30,30);
+	           }
+	           else if (command.equals("End Point"))
+	           {
+	        	   addShape(new RectShape(),10,30);
+	           }
+	           else if (command.equals("Delete"))
+	           {
+	        	   System.out.println("Pressed Delete");
+	        	   if(elementClickedOn != null)
+	        	   {
+	        		   deleteElement();
+	        	   }
+	           }
          }
 		
 		void addShape(Shape shape, int width, int height) {
@@ -226,6 +246,25 @@ public class UserInterface{
 			shapes.add(shape);
 			repaint();
 		}
+		
+		// remove an element (Shape) from the list
+		void deleteElement()
+		{
+			System.out.println("Want to delete the currrently selected item: " + elementClickedOn.getClass().getSimpleName());
+			for(int index = 0; index < shapes.size(); index++)
+			{
+				if(shapes.get(index).getClass().getSimpleName().equals(elementClickedOn.getClass().getSimpleName()))
+				{
+//					System.out.println("List size before deletion: " + shapes.size());
+					shapes.remove(index);
+//					System.out.println("List size after deletion: " + shapes.size());
+					break;	// deleted the wanted element, do exit loop
+				}
+			}
+			elementClickedOn = null; // set the elementClickedOn back to null
+			repaint();	// update the canvas after deleting element
+		}
+		
 		
 		// -------------------- This rest of this class implements dragging
 		// ----------------------
@@ -299,6 +338,13 @@ public class UserInterface{
 			// it back onscreen).
 			int x = evt.getX();
 			int y = evt.getY();
+			for (int i = shapes.size() - 1; i >= 0; i--) { // check shapes from front to back
+				Shape s = (Shape) shapes.get(i);
+				if (s.containsPoint(x, y)) {
+					elementClickedOn = s;
+				}
+			}
+						
 			if (shapeBeingDragged != null) {
 				shapeBeingDragged.moveBy(x - prevDragX, y - prevDragY);
 				if (shapeBeingDragged.left >= getSize().width
@@ -314,6 +360,7 @@ public class UserInterface{
 				shapeBeingDragged = null;
 				repaint();
 			}
+			
 		}
 
 		@Override
